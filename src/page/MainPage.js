@@ -26,32 +26,159 @@ const props = {
         }
     },
 };
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+const recognition = new SpeechRecognition();
+recognition.continuous = true;
+const synth = window.speechSynthesis;
+const voicePitch=0.9;
+const voiceRate=0.9
+const voiceName="Google US English";
+recognition.start(); 
 class MainPage extends React.Component {
 
     constructor() {
         super()
         this.state = {
             result: [],
-            product:null
+            product:null,
+            isListening:false,
+            showAllProducts:true,
+            lastTranscript:''
         }
     }
+
+    voicecommands=()=>{
+        recognition.onstart =()=>{
+            console.log('voice is activited');
+        }
+
+        function includesSome(transcriptList,list){
+            return list.some(i => transcriptList.includes(i))
+        }
+        function includesAll(transcriptList,list){
+            return list.every(i => transcriptList.includes(i))
+        }
+
+        recognition.onresult=(e)=>{
+            let current=e.resultIndex;
+            let transcript=e.results[current][0].transcript.trim().toLowerCase()
+            console.log(e.results)
+            let transcriptList=transcript.split(" ");
+            console.log("Speech to text:",transcriptList);
+            // console.log("hhhh "+transcript+" "+this.state.lastTranscript)
+            switch(true){
+                case includesAll(transcriptList,["alex"]) :{
+                    this.setState({isListening:true})
+                    this.speak("hi how can I help you");
+                }
+                break;
+                case this.state.isListening && transcript!==this.state.lastTranscript:
+                    switch(true){
+                        case includesSome(transcriptList,['stop']):{
+                            this.speak("stop now");
+                            this.setState({isListening:false});
+                            recognition.stop();
+                            break;
+                        }
+                        case includesSome(transcriptList,['hello','hi']):{this.speak("hi how can I help you"); break;}
+                        case this.state.showAllProducts:{ //voice commands for all products without clicking single image
+                            switch(true){
+                                case includesAll(transcriptList,['what','product']):{
+                                    const numberList=['first','second','third','fourth','fifth','sixth','seventh','eighth','ninth']
+                                    if(includesSome(transcriptList,numberList)){
+                                        if(includesAll(transcriptList,['price'])||includesAll(transcript,['how much'])){
+                                            transcriptList.forEach(i => {
+                                                const index=numberList.indexOf(i);
+                                                if(index>-1)
+                                                this.speak("The price of "+numberList[index]+" product is "+this.state.result[index].product.productLabels[1].value);
+                                            });
+                                        }
+                                        else {
+                                        transcriptList.forEach(i => {
+                                            const index=numberList.indexOf(i);
+                                            if(index>-1)
+                                            this.speak("The "+numberList[index]+" product is "+this.state.result[index].product.displayName+"And it is "+this.state.result[index].product.productLabels[2].value);
+                                        });
+                                        }
+                                    }
+                                    break;
+                                }
+                                
+                                default: this.speak("sorry i didn't catch that")
+                            }
+                        }
+                        break;
+                        case !this.state.showAllProducts:{//voice commands for single product after clicking single image
+                            switch(true){
+                                case includesSome(transcriptList,['what','is','it','this']):{
+                                    if(includesAll(transcriptList,['price'])||includesAll(transcript,['how much'])){
+                                        this.speak("The price of this product is "+this.state.product.product.productLabels[1].value);
+                                    }
+                                    else{
+                                    this.speak("This product is "+this.state.product.product.displayName+"and it is "+this.state.product.product.productLabels[2].value);
+                                    }
+                                    break;
+                                }
+                                default:this.speak("sorry i didn't catch that")
+                            }
+                        }
+                        break;
+                    }
+        }
+        
+        }
+
+        recognition.onend =  ()=> {
+            recognition.start()
+            // recognition.stop();
+        };
+        
+        recognition.onerror=(e)=>{
+            console.log("error: ",e.error)
+        }
+        // if(!this.state.isListening){
+        //     recognition.start(); 
+        // }
+    }
+
+    speak=(message)=>{
+        this.setState({lastTranscript:message.toLowerCase()})
+        
+        const utterThis = new SpeechSynthesisUtterance(message);
+        utterThis.pitch = voicePitch;
+        utterThis.rate = voiceRate;
+        const voices = synth.getVoices();
+        for(var i = 0; i < voices.length ; i++) {
+            if(voices[i].name===voiceName)
+            var selectVoice=voices[i];
+        }
+        utterThis.voice=selectVoice;
+        synth.speak(utterThis);
+
+    }
+
     showModal = (product) => {
         console.log(product)
         this.setState({
             product:product,
             visible: true,
+            showAllProducts:false
         });
+        this.voicecommands();
     };
 
     handleOk = e => {
         this.setState({
             visible: false,
+            showAllProducts:true
         });
     };
 
     handleCancel = e => {
         this.setState({
             visible: false,
+            showAllProducts:true
         });
     };
 
@@ -99,14 +226,17 @@ class MainPage extends React.Component {
             const headers = {
                 'Content-Type': 'application/json'
             }
+            
             axios.post("https://vision.googleapis.com/v1/images:annotate?key=AIzaSyBKN2khvOa7jEiXvqNS7AIiGIpbc4SOzxI", body, {
                 headers: headers
             })
                 .then(result => {
                     console.log(result)
                     this.setState({
-                        result: result.data.responses[0].productSearchResults.results
+                        result: result.data.responses[0].productSearchResults.results,
+                        showAllProducts:true
                     })
+                    this.voicecommands();
                 })
         };
         reader.readAsDataURL(file);
