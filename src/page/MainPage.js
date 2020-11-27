@@ -29,7 +29,7 @@ const props = {
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
 const recognition = new SpeechRecognition();
-recognition.continuous = true;
+recognition.continuous = false;
 const synth = window.speechSynthesis;
 const voicePitch=0.9;
 const voiceRate=0.9
@@ -44,7 +44,7 @@ class MainPage extends React.Component {
             product:null,
             isListening:false,
             showAllProducts:true,
-            lastTranscript:''
+            speakTranscript:'',
         }
     }
 
@@ -61,19 +61,20 @@ class MainPage extends React.Component {
         }
 
         recognition.onresult=(e)=>{
+            
             let current=e.resultIndex;
             let transcript=e.results[current][0].transcript.trim().toLowerCase()
             console.log(e.results)
             let transcriptList=transcript.split(" ");
             console.log("Speech to text:",transcriptList);
-            // console.log("hhhh "+transcript+" "+this.state.lastTranscript)
+            // console.log("hhhh "+transcript+" "+this.state.speakTranscript)
             switch(true){
                 case includesAll(transcriptList,["alex"]) :{
                     this.setState({isListening:true})
                     this.speak("hi how can I help you");
                 }
                 break;
-                case this.state.isListening && transcript!==this.state.lastTranscript:
+                case this.state.isListening && transcript!==this.state.speakTranscript:
                     switch(true){
                         case includesSome(transcriptList,['stop']):{
                             this.speak("stop now");
@@ -84,23 +85,29 @@ class MainPage extends React.Component {
                         case includesSome(transcriptList,['hello','hi']):{this.speak("hi how can I help you"); break;}
                         case this.state.showAllProducts:{ //voice commands for all products without clicking single image
                             switch(true){
-                                case includesAll(transcriptList,['what','product']):{
+                                case includesAll(transcriptList,['product']):{
                                     const numberList=['first','second','third','fourth','fifth','sixth','seventh','eighth','ninth']
                                     if(includesSome(transcriptList,numberList)){
-                                        if(includesAll(transcriptList,['price'])||includesAll(transcript,['how much'])){
+                                        if(includesAll(transcriptList,['price'])||includesAll(transcript,['how','much'])){
                                             transcriptList.forEach(i => {
                                                 const index=numberList.indexOf(i);
                                                 if(index>-1)
-                                                this.speak("The price of "+numberList[index]+" product is "+this.state.result[index].product.productLabels[1].value);
+                                                this.speak("the price of "+numberList[index]+" product is "+this.state.result[index].product.productLabels[1].value);
+                                            });
+                                        }
+                                        else if(includesAll(transcriptList,['what'])){
+                                            transcriptList.forEach(i => {
+                                                const index=numberList.indexOf(i);
+                                                if(index>-1)
+                                                this.speak("the "+numberList[index]+" product is "+this.state.result[index].product.displayName+"And it is "+this.state.result[index].product.productLabels[2].value);
                                             });
                                         }
                                         else {
-                                        transcriptList.forEach(i => {
-                                            const index=numberList.indexOf(i);
-                                            if(index>-1)
-                                            this.speak("The "+numberList[index]+" product is "+this.state.result[index].product.displayName+"And it is "+this.state.result[index].product.productLabels[2].value);
-                                        });
+                                            this.speak("sorry i didn't catch that")
                                         }
+                                    }
+                                    else {
+                                        this.speak("sorry i didn't catch that")
                                     }
                                     break;
                                 }
@@ -113,10 +120,10 @@ class MainPage extends React.Component {
                             switch(true){
                                 case includesSome(transcriptList,['what','is','it','this']):{
                                     if(includesAll(transcriptList,['price'])||includesAll(transcript,['how much'])){
-                                        this.speak("The price of this product is "+this.state.product.product.productLabels[1].value);
+                                        this.speak("the price of this product is "+this.state.product.product.productLabels[1].value);
                                     }
                                     else{
-                                    this.speak("This product is "+this.state.product.product.displayName+"and it is "+this.state.product.product.productLabels[2].value);
+                                    this.speak("this product is "+this.state.product.product.displayName+"and it is "+this.state.product.product.productLabels[2].value);
                                     }
                                     break;
                                 }
@@ -126,7 +133,6 @@ class MainPage extends React.Component {
                         break;
                     }
         }
-        
         }
 
         recognition.onend =  ()=> {
@@ -137,13 +143,14 @@ class MainPage extends React.Component {
         recognition.onerror=(e)=>{
             console.log("error: ",e.error)
         }
+        
         // if(!this.state.isListening){
         //     recognition.start(); 
         // }
     }
 
     speak=(message)=>{
-        this.setState({lastTranscript:message.toLowerCase()})
+        this.setState({speakTranscript:message.toLowerCase()})
         
         const utterThis = new SpeechSynthesisUtterance(message);
         utterThis.pitch = voicePitch;
@@ -155,7 +162,6 @@ class MainPage extends React.Component {
         }
         utterThis.voice=selectVoice;
         synth.speak(utterThis);
-
     }
 
     showModal = (product) => {
@@ -183,6 +189,10 @@ class MainPage extends React.Component {
     };
 
     componentDidMount() {
+        recognition.onend =  ()=> {
+            recognition.start()
+            // recognition.stop();
+        };
         // searchAmazon('xbox controller').then(data => {
         //     console.log(data);
         //     console.log(data.pageNumber)    // 1
