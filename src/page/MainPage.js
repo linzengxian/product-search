@@ -28,7 +28,14 @@ const props = {
         }
     },
 };
-
+function getBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+  }
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
 const recognition = new SpeechRecognition();
 recognition.continuous = false;
@@ -47,7 +54,8 @@ class MainPage extends React.Component {
             isListening: false,
             showAllProducts: true,
             speakTranscript: '',
-            loading: false
+            loading: false,
+            image:null
         }
     }
 
@@ -203,17 +211,17 @@ class MainPage extends React.Component {
         // });
     }
     getResult = (file) => {
-        console.log(file)
         const reader = new FileReader();
-
         this.setState({
             loading: true
         })
         reader.onload = e => {
+            this.setState({
+                image:reader.result
+            })
             let img64 = reader.result.replace('data:image/png;base64,', '')
                 .replace('data:image/jpeg;base64,', '')
                 .replace('data:image/gif;base64,', '');
-
             let body = {
                 "requests": [
                     {
@@ -280,25 +288,22 @@ class MainPage extends React.Component {
         return <Row>{resultComponents}</Row>
     }
 
-    handleClick = (e)=>{
-        // let path = "/" + e.key
-        // <Link to="/">Home</Link>
-    }
     render() {
+        console.log(this.state.image)
         const resultList = this.generateResultList();
         return <Layout>
             <Header className="header">
                 <div className="logo">
                     <Title style={{ 'color': 'white' }}>Product Search</Title>
                 </div>
-                {/* <Menu theme="dark" mode="horizontal" className="menuItem"  onClick={this.handleClick}>
-                    <Menu.Item key="support">Support</Menu.Item>
-                </Menu> */}
                 <div className="menuItem"><Link to="/support">Support</Link></div>
             </Header>
             <Layout>
                 <Sider width={300} className="site-layout-background">
                     <Dragger beforeUpload={this.getResult} {...props}>
+                        <div>
+                            <img width={290} src={this.state.image}></img>
+                        </div>
                         <p className="ant-upload-drag-icon">
                             <InboxOutlined />
                         </p>
