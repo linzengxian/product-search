@@ -4,3 +4,13 @@
 .site-layout-background{
     background-color: white;
 }
+.logo {
+    float: left;
+    width: 300px;
+    height: 31px;
+    margin: 16px 24px 16px 0;
+  }
+
+.menuItem{
+    float: right;
+}

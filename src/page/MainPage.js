@@ -4,6 +4,9 @@ import { InboxOutlined } from '@ant-design/icons';
 import './MainPage.css';
 import axios from 'axios'
 import ProductDetail from '../component/ProductDetail.js'
+import {
+    Link
+} from "react-router-dom";
 
 const { Dragger } = Upload;
 const { Title } = Typography;
@@ -30,76 +33,76 @@ const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecogni
 const recognition = new SpeechRecognition();
 recognition.continuous = false;
 const synth = window.speechSynthesis;
-const voicePitch=0.9;
-const voiceRate=0.9
-const voiceName="Google US English";
-recognition.start(); 
+const voicePitch = 0.9;
+const voiceRate = 0.9
+const voiceName = "Google US English";
+recognition.start();
 class MainPage extends React.Component {
 
     constructor() {
         super()
         this.state = {
             result: [],
-            product:null,
-            isListening:false,
-            showAllProducts:true,
-            speakTranscript:'',
-            loading:false
+            product: null,
+            isListening: false,
+            showAllProducts: true,
+            speakTranscript: '',
+            loading: false
         }
     }
 
-    voicecommands=()=>{
-        recognition.onstart =()=>{
+    voicecommands = () => {
+        recognition.onstart = () => {
             console.log('voice is activited');
         }
 
-        function includesSome(transcriptList,list){
+        function includesSome(transcriptList, list) {
             return list.some(i => transcriptList.includes(i))
         }
-        function includesAll(transcriptList,list){
+        function includesAll(transcriptList, list) {
             return list.every(i => transcriptList.includes(i))
         }
 
-        recognition.onresult=(e)=>{
-            
-            let current=e.resultIndex;
-            let transcript=e.results[current][0].transcript.trim().toLowerCase()
+        recognition.onresult = (e) => {
+
+            let current = e.resultIndex;
+            let transcript = e.results[current][0].transcript.trim().toLowerCase()
             console.log(e.results)
-            let transcriptList=transcript.split(" ");
-            console.log("Speech to text:",transcriptList);
+            let transcriptList = transcript.split(" ");
+            console.log("Speech to text:", transcriptList);
             // console.log("hhhh "+transcript+" "+this.state.speakTranscript)
-            switch(true){
-                case includesAll(transcriptList,["alex"]) :{
-                    this.setState({isListening:true})
+            switch (true) {
+                case includesAll(transcriptList, ["alex"]): {
+                    this.setState({ isListening: true })
                     this.speak("hi how can I help you");
                 }
-                break;
-                case this.state.isListening && transcript!==this.state.speakTranscript:
-                    switch(true){
-                        case includesSome(transcriptList,['stop']):{
+                    break;
+                case this.state.isListening && transcript !== this.state.speakTranscript:
+                    switch (true) {
+                        case includesSome(transcriptList, ['stop']): {
                             this.speak("stop now");
-                            this.setState({isListening:false});
+                            this.setState({ isListening: false });
                             recognition.stop();
                             break;
                         }
-                        case includesSome(transcriptList,['hello','hi']):{this.speak("hi how can I help you"); break;}
-                        case this.state.showAllProducts:{ //voice commands for all products without clicking single image
-                            switch(true){
-                                case includesAll(transcriptList,['product']):{
-                                    const numberList=['first','second','third','fourth','fifth','sixth','seventh','eighth','ninth']
-                                    if(includesSome(transcriptList,numberList)){
-                                        if(includesAll(transcriptList,['price'])||includesAll(transcript,['how','much'])){
+                        case includesSome(transcriptList, ['hello', 'hi']): { this.speak("hi how can I help you"); break; }
+                        case this.state.showAllProducts: { //voice commands for all products without clicking single image
+                            switch (true) {
+                                case includesAll(transcriptList, ['product']): {
+                                    const numberList = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth']
+                                    if (includesSome(transcriptList, numberList)) {
+                                        if (includesAll(transcriptList, ['price']) || includesAll(transcript, ['how', 'much'])) {
                                             transcriptList.forEach(i => {
-                                                const index=numberList.indexOf(i);
-                                                if(index>-1)
-                                                this.speak("the price of "+numberList[index]+" product is "+this.state.result[index].product.productLabels[1].value);
+                                                const index = numberList.indexOf(i);
+                                                if (index > -1)
+                                                    this.speak("the price of " + numberList[index] + " product is " + this.state.result[index].product.productLabels[1].value);
                                             });
                                         }
-                                        else if(includesAll(transcriptList,['what'])){
+                                        else if (includesAll(transcriptList, ['what'])) {
                                             transcriptList.forEach(i => {
-                                                const index=numberList.indexOf(i);
-                                                if(index>-1)
-                                                this.speak("the "+numberList[index]+" product is "+this.state.result[index].product.displayName+"And it is "+this.state.result[index].product.productLabels[2].value);
+                                                const index = numberList.indexOf(i);
+                                                if (index > -1)
+                                                    this.speak("the " + numberList[index] + " product is " + this.state.result[index].product.displayName + "And it is " + this.state.result[index].product.productLabels[2].value);
                                             });
                                         }
                                         else {
@@ -111,65 +114,65 @@ class MainPage extends React.Component {
                                     }
                                     break;
                                 }
-                                
+
                                 default: this.speak("sorry i didn't catch that")
                             }
                         }
-                        break;
-                        case !this.state.showAllProducts:{//voice commands for single product after clicking single image
-                            switch(true){
-                                case includesSome(transcriptList,['what','is','it','this']):{
-                                    if(includesAll(transcriptList,['price'])||includesAll(transcript,['how much'])){
-                                        this.speak("the price of this product is "+this.state.product.product.productLabels[1].value);
+                            break;
+                        case !this.state.showAllProducts: {//voice commands for single product after clicking single image
+                            switch (true) {
+                                case includesSome(transcriptList, ['what', 'is', 'it', 'this']): {
+                                    if (includesAll(transcriptList, ['price']) || includesAll(transcript, ['how much'])) {
+                                        this.speak("the price of this product is " + this.state.product.product.productLabels[1].value);
                                     }
-                                    else{
-                                    this.speak("this product is "+this.state.product.product.displayName+"and it is "+this.state.product.product.productLabels[2].value);
+                                    else {
+                                        this.speak("this product is " + this.state.product.product.displayName + "and it is " + this.state.product.product.productLabels[2].value);
                                     }
                                     break;
                                 }
-                                default:this.speak("sorry i didn't catch that")
+                                default: this.speak("sorry i didn't catch that")
                             }
                         }
-                        break;
+                            break;
                     }
-        }
+            }
         }
 
-        recognition.onend =  ()=> {
+        recognition.onend = () => {
             recognition.start()
             // recognition.stop();
         };
-        
-        recognition.onerror=(e)=>{
-            console.log("error: ",e.error)
+
+        recognition.onerror = (e) => {
+            console.log("error: ", e.error)
         }
-        
+
         // if(!this.state.isListening){
         //     recognition.start(); 
         // }
     }
 
-    speak=(message)=>{
-        this.setState({speakTranscript:message.toLowerCase()})
-        
+    speak = (message) => {
+        this.setState({ speakTranscript: message.toLowerCase() })
+
         const utterThis = new SpeechSynthesisUtterance(message);
         utterThis.pitch = voicePitch;
         utterThis.rate = voiceRate;
         const voices = synth.getVoices();
-        for(var i = 0; i < voices.length ; i++) {
-            if(voices[i].name===voiceName)
-            var selectVoice=voices[i];
+        for (var i = 0; i < voices.length; i++) {
+            if (voices[i].name === voiceName)
+                var selectVoice = voices[i];
         }
-        utterThis.voice=selectVoice;
+        utterThis.voice = selectVoice;
         synth.speak(utterThis);
     }
 
     showModal = (product) => {
         console.log(product)
         this.setState({
-            product:product,
+            product: product,
             visible: true,
-            showAllProducts:false
+            showAllProducts: false
         });
         this.voicecommands();
     };
@@ -177,19 +180,19 @@ class MainPage extends React.Component {
     handleOk = e => {
         this.setState({
             visible: false,
-            showAllProducts:true
+            showAllProducts: true
         });
     };
 
     handleCancel = e => {
         this.setState({
             visible: false,
-            showAllProducts:true
+            showAllProducts: true
         });
     };
 
     componentDidMount() {
-        recognition.onend =  ()=> {
+        recognition.onend = () => {
             recognition.start()
             // recognition.stop();
         };
@@ -204,7 +207,7 @@ class MainPage extends React.Component {
         const reader = new FileReader();
 
         this.setState({
-            loading:true
+            loading: true
         })
         reader.onload = e => {
             let img64 = reader.result.replace('data:image/png;base64,', '')
@@ -239,15 +242,15 @@ class MainPage extends React.Component {
             const headers = {
                 'Content-Type': 'application/json'
             }
-            
+
             axios.post("https://vision.googleapis.com/v1/images:annotate?key=AIzaSyBKN2khvOa7jEiXvqNS7AIiGIpbc4SOzxI", body, {
                 headers: headers
             })
                 .then(result => {
                     this.setState({
                         result: result.data.responses[0].productSearchResults.results,
-                        showAllProducts:true,
-                        loading:false
+                        showAllProducts: true,
+                        loading: false
                     })
                     this.voicecommands();
                 })
@@ -276,11 +279,22 @@ class MainPage extends React.Component {
         })
         return <Row>{resultComponents}</Row>
     }
+
+    handleClick = (e)=>{
+        // let path = "/" + e.key
+        // <Link to="/">Home</Link>
+    }
     render() {
         const resultList = this.generateResultList();
         return <Layout>
             <Header className="header">
-                <Title style={{ 'color': 'white' }}>Product Search</Title>
+                <div className="logo">
+                    <Title style={{ 'color': 'white' }}>Product Search</Title>
+                </div>
+                {/* <Menu theme="dark" mode="horizontal" className="menuItem"  onClick={this.handleClick}>
+                    <Menu.Item key="support">Support</Menu.Item>
+                </Menu> */}
+                <div className="menuItem"><Link to="/support">Support</Link></div>
             </Header>
             <Layout>
                 <Sider width={300} className="site-layout-background">
@@ -303,7 +317,7 @@ class MainPage extends React.Component {
                             marginTop: 24,
                             minHeight: 600,
                             maxHeight: 600,
-                            overflow:"auto"
+                            overflow: "auto"
                         }}
                     >
                         <Spin spinning={this.state.loading}>
