@@ -1,9 +1,8 @@
 import React from 'react';
-import { Layout, Upload, message, Typography, Card, Row, Empty, Modal, Button, List } from 'antd';
+import { Layout, Upload, message, Typography, Card, Row, Empty, Modal, Button, Spin } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import './MainPage.css';
 import axios from 'axios'
-import { searchAmazon } from 'unofficial-amazon-search';
 import ProductDetail from '../component/ProductDetail.js'
 
 const { Dragger } = Upload;
@@ -45,6 +44,7 @@ class MainPage extends React.Component {
             isListening:false,
             showAllProducts:true,
             speakTranscript:'',
+            loading:false
         }
     }
 
@@ -203,6 +203,9 @@ class MainPage extends React.Component {
         console.log(file)
         const reader = new FileReader();
 
+        this.setState({
+            loading:true
+        })
         reader.onload = e => {
             let img64 = reader.result.replace('data:image/png;base64,', '')
                 .replace('data:image/jpeg;base64,', '')
@@ -241,10 +244,10 @@ class MainPage extends React.Component {
                 headers: headers
             })
                 .then(result => {
-                    console.log(result)
                     this.setState({
                         result: result.data.responses[0].productSearchResults.results,
-                        showAllProducts:true
+                        showAllProducts:true,
+                        loading:false
                     })
                     this.voicecommands();
                 })
@@ -303,7 +306,9 @@ class MainPage extends React.Component {
                             overflow:"auto"
                         }}
                     >
-                        {resultList}
+                        <Spin spinning={this.state.loading}>
+                            {resultList}
+                        </Spin>
                         <Modal
                             title="Detail"
                             visible={this.state.visible}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Typography, Row, List, Col, Image, Divider,Rate,Statistic } from 'antd';
+import { Typography, Row, List, Col, Image, Divider,Rate,Statistic,Spin } from 'antd';
 import { searchAmazon } from 'unofficial-amazon-search';
 const { Title, Text } = Typography;
 
@@ -8,29 +8,19 @@ class ProductDetail extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            items: []
+            items: [],
+            loading:false
         }
     }
     loadPrice = () => {
         const product = this.props.product.product
+        this.setState({
+            loading:true
+        })
         searchAmazon(product.productLabels[0].value).then(data => {
-            // let result = data.searchResults
-            // console.log(result)
-            // let itemComponent = result.map(item => {
-            //     console.log(item.imageUrl)
-            //     return <List.Item>
-            //         <List.Item.Meta
-            //             avatar={<Avatar src={item.imageUrl} />}
-            //             title={<Text>grg</Text>}
-            //         />
-            //     </List.Item>
-            // })
-            // itemComponent = <List>
-            //     {itemComponent}
-            // </List>
-            console.log(data)
             this.setState({
-                items: data.searchResults
+                items: data.searchResults,
+                loading:false
             })
         });
     }
@@ -63,6 +53,7 @@ class ProductDetail extends React.Component {
             <Divider>Buy</Divider>
             <Row>
                 <Col span={24}>
+                <Spin spinning={this.state.loading}>
                     <List
                         itemLayout="horizontal"
                         style={{
@@ -82,6 +73,7 @@ class ProductDetail extends React.Component {
                             </List.Item>
                         )}
                     />
+                    </Spin>
                 </Col>
             </Row>
         </div>
