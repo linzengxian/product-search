@@ -65,7 +65,7 @@ class ProductDetail extends React.Component {
                             <List.Item>
                                 <List.Item.Meta
                                     avatar={<Image width={150} src={item.imageUrl} />}
-                                    title={<a href={"https://www.amazon.com/" + item.productUrl}>{item.title}</a>}
+                                    title={<a href={"https://www.amazon.com/" + item.productUrl} target="_blank">{item.title}</a>}
                                     description={<div><Rate disabled defaultValue={item.rating.score} />
                                      {item.prices.length === 0 ? <Text strong>{"\n"}Out of Stock</Text> :<Statistic title="Price (USD)" value={item.prices[0].price} precision={2} />}
                                     </div>}

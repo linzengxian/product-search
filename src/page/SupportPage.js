@@ -57,7 +57,7 @@ class SupportPage extends Component {
                 </Title>
 
                 <Title id="Ask-Product-Information" level={3}>Ask Product Information</Title>
-                <Title level={4}>when at homepage</Title>
+                <Title level={4}>When At Homepage</Title>
                 <Title level={5}>
                   Say "What is first product" to let the application speak out first product's name and description. This command also apply to second, third, etc.
                 </Title>
