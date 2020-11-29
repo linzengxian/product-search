@@ -22,7 +22,7 @@ class SupportPage extends Component {
     return (
       <Layout>
         <Header className="header">
-          <div className="logo">
+          <div className="logo" style={{marginTop:'5px'}}>
             <Title style={{ 'color': 'white' }}>Product Search</Title>
           </div>
           <div className="menuItem"><Navigator to="/">Home</Navigator></div>

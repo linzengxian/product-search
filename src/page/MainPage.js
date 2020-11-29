@@ -293,8 +293,8 @@ class MainPage extends React.Component {
         const resultList = this.generateResultList();
         return <Layout>
             <Header className="header">
-                <div className="logo">
-                    <Title style={{ 'color': 'white' }}>Product Search</Title>
+                <div className="logo" style={{marginTop:'5px'}}>
+                    <Title style={{ 'color': 'white' }}>Product Finder</Title>
                 </div>
                 <div className="menuItem"><Link to="/support">Support</Link></div>
             </Header>
