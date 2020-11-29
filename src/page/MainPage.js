@@ -261,6 +261,8 @@ class MainPage extends React.Component {
                         loading: false
                     })
                     this.voicecommands();
+                }).catch(e=>{
+                    message.error("search fail! make sure you have correct image format or check network connection")
                 })
         };
         reader.readAsDataURL(file);
@@ -289,7 +291,6 @@ class MainPage extends React.Component {
     }
 
     render() {
-        console.log(this.state.image)
         const resultList = this.generateResultList();
         return <Layout>
             <Header className="header">
@@ -302,16 +303,15 @@ class MainPage extends React.Component {
                 <Sider width={300} className="site-layout-background">
                     <Dragger beforeUpload={this.getResult} {...props}>
                         <div>
-                            <img width={290} src={this.state.image}></img>
+                            <img width={290} style={{marginTop:0}} src={this.state.image}></img>
                         </div>
                         <p className="ant-upload-drag-icon">
                             <InboxOutlined />
                         </p>
 
-                        <p className="ant-upload-text">Click or drag file to this area to upload</p>
+                        <p className="ant-upload-text">Click or drag image to this area to upload</p>
                         <p className="ant-upload-hint">
-                            Support for a single or bulk upload. Strictly prohibit from uploading company data or other
-                            band files</p>
+                            Support for a single image upload, make sure you have correct image format.</p>
                     </Dragger>
                 </Sider>
                 <Layout style={{ padding: '0 24px 24px' }}>
